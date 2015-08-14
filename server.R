@@ -1,6 +1,6 @@
 source("predict.R")
 column_classes = c("integer", "character", "integer", "integer", "character", "character")
-dict = read.csv("lookup_no_hapaxes.csv", colClasses = column_classes)
+dict = read.csv("alt_pruned_lookup.csv", colClasses = column_classes)
 
 shinyServer(function(input, output) {
 

@@ -15,9 +15,20 @@ predict <- function(input_text) {
     }
 }
 
+# clean input text
+clean_string <- function(input_text) {
+    cleaned = tolower(input_text)
+    cleaned = gsub("[[:punct:]]", "", cleaned)
+    cleaned = gsub("[[:digit:]]", "", cleaned)
+    cleaned = gsub(" +", " ", cleaned)
+
+    return(cleaned)
+}
+
 
 # get candidate keys
 get_candidates <- function(input_text) {
+    input_text = clean_string(input_text)
     input_text = strsplit(input_text, " ")[[1]]
     input_len = length(input_text)
     c1 = paste(input_text[(input_len - 2)], input_text[(input_len -1)], input_text[input_len])
