@@ -44,7 +44,7 @@ predict_v2 <- function(input_text, dict) {
     cands = get_candidates(input_text)
     best_answers = data.frame("prediction" = character(0), "score" = numeric(0), stringsAsFactors = FALSE)
     for(candidate in cands) {
-        matches = data.frame("val" = dict$trailing[dict$leading == candidate], "score" = dict$frequency[dict$leading == candidate] * dict$n[dict$leading == candidate], stringsAsFactors = FALSE)
+        matches = data.frame("val" = dict$trailing[dict$leading == candidate], "score" = dict$frequency[dict$leading == candidate] ^ dict$n[dict$leading == candidate], stringsAsFactors = FALSE)
         top_pred = matches$val[matches$score == max(matches$score)]
         top_pred_score = matches$score[matches$score == max(matches$score)]
         best_match = data.frame("prediction" = top_pred, "score" = top_pred_score, stringsAsFactors = FALSE)
