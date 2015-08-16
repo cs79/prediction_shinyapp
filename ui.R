@@ -20,7 +20,7 @@ shinyUI(fluidPage(
     ),
     fluidRow(
             column(2),
-            column(8,
+            column(3,
            h2("Some things you can try:"),
            br(),
            tags$ul(
@@ -28,6 +28,9 @@ shinyUI(fluidPage(
                    tags$li("Complain about how bad the model is and how you built a much better one"),
                    tags$li("Third comedy option")
            )
-        )
+        ),
+        column(5,
+               h2("Some other guesses at your next word:"),
+               plotOutput( "plot" ))
     )
 ))

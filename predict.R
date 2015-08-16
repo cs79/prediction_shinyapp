@@ -61,6 +61,31 @@ predict_v2 <- function(input_text, dict) {
     }
 }
 
+plot_preds <- function(input_text, dict) {
+        cands = get_candidates(input_text)
+        best_answers = data.frame("prediction" = character(0), "score" = numeric(0), stringsAsFactors = FALSE)
+        for(candidate in cands) {
+                matches = data.frame("val" = dict$trailing[dict$leading == candidate], "score" = dict$frequency[dict$leading == candidate] ^ dict$n[dict$leading == candidate], stringsAsFactors = FALSE)
+                top_pred = matches$val[matches$score == max(matches$score)]
+                top_pred_score = matches$score[matches$score == max(matches$score)]
+                best_match = data.frame("prediction" = top_pred, "score" = top_pred_score, stringsAsFactors = FALSE)
+                best_answers = rbind(best_answers, best_match)
+        }
+        # omit the NAs since those aren't real predictions, just a one-word match
+        best_answers = best_answers[complete.cases(best_answers), ]
+        
+        best_answers = best_answers[order(best_answers$score, decreasing = TRUE), ]
+        return(barplot(as.matrix(log(best_answers$score)), beside=TRUE, horiz = TRUE, legend.text = best_answers$prediction))
+}
+
+# TODO:
+# force top candidates to be unique words (for plot)
+# fix scoring mechanism
+# fix original dataframe - remove "$NUMBER" sentinel; try using generators to build ngrams from a single string of text
+# make plot better
+# add some links / better filler text
+# add a little more styling to the page
+
 # code to get trailing word where leading word = candidate:
 # candidate = 'something'
 # dict["trailing"][dict["leading"] == candidate]

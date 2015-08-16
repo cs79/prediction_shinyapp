@@ -8,6 +8,7 @@ shinyServer(function(input, output) {
 
     observeEvent(input$predictNow, {
         output$pred0 <- renderText({ predict_v2(input$textToPredict, dict = dict)[1] })
+        output$plot <- renderPlot({ plot_preds(input$textToPredict, dict=dict) })
     })
 
     # alternative which tries to predict "live" but I think will die with a real prediction fn running
