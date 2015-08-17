@@ -31,12 +31,26 @@ get_candidates <- function(input_text) {
     input_text = clean_string(input_text)
     input_text = strsplit(input_text, " ")[[1]]
     input_len = length(input_text)
-    c1 = paste(input_text[(input_len - 2)], input_text[(input_len -1)], input_text[input_len])
-    c2 = paste(input_text[(input_len - 1)], input_text[input_len])
-    c3 = input_text[input_len]
-    cands = c(c1, c2, c3)
-
-    return(cands)
+    # logic to return the correct number of candidates based on input length
+    if(input_len < 3) {
+            if(input_len == 1) {
+                    cands = input_text
+                    return(cands)
+            }
+            else {
+                    c1 = paste(input_text[(input_len - 1)], input_text[input_len])
+                    c2 = input_text[input_len]
+                    cands = c(c1, c2)
+                    return(cands)
+            }
+    }
+    else {
+            c1 = paste(input_text[(input_len - 2)], input_text[(input_len -1)], input_text[input_len])
+            c2 = paste(input_text[(input_len - 1)], input_text[input_len])
+            c3 = input_text[input_len]
+            cands = c(c1, c2, c3)
+            return(cands)
+    }
 }
 
 # use get_candidates to predict (see commented stuff below related to imported dict DF from Python)
@@ -80,6 +94,7 @@ plot_preds <- function(input_text, dict) {
 
 # TODO:
 # force top candidates to be unique words (for plot)
+# ^^^ this is currently a problem because it's getting predictions for only candidates generated from the same 3 word fragment -- need to figure out how to compile regexes to get alternative predictions with "anonymous" words inserted
 # fix scoring mechanism
 # fix original dataframe - remove "$NUMBER" sentinel; try using generators to build ngrams from a single string of text
 # make plot better
