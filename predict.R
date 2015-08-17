@@ -53,6 +53,26 @@ get_candidates <- function(input_text) {
     }
 }
 
+add_lambdas <- function(raw_candidates) {
+        with_lambdas = raw_candidates
+        anon = "[a-z+]"
+        for(cand in raw_candidates) {
+                len = length(strsplit(cand, " ")[[1]])
+                if(len > 1) {
+                        split_cand = strsplit(cand, " ")[[1]]
+                        # sub "anon" in for each word
+                        for(i in 1:len) {
+                                split_copy = split_cand
+                                split_copy[i] = anon
+                                lambda = paste(split_copy, collapse = " ")
+                                with_lambdas = c(with_lambdas, lambda)
+                        }
+                }
+        }
+        
+        return(with_lambdas)
+}
+
 # use get_candidates to predict (see commented stuff below related to imported dict DF from Python)
 predict_v2 <- function(input_text, dict) {
     cands = get_candidates(input_text)
