@@ -1,21 +1,4 @@
-predict <- function(input_text) {
-
-    # for now, do nothing with the actual input and return a random set of choices:
-
-    fakelist = c("this", "is", "sample", "predicted", "output", "that's", "fake", "for", "testing", "purposes")
-
-    shuffled = sample(fakelist, length(input_text))
-
-    if (input_text == "") {
-        return("")
-    }
-
-    else {
-        return(shuffled)
-    }
-}
-
-# clean input text
+# function to clean input text
 clean_string <- function(input_text) {
     cleaned = tolower(input_text)
     cleaned = gsub("[[:punct:]]", "", cleaned)
@@ -26,7 +9,7 @@ clean_string <- function(input_text) {
 }
 
 
-# get candidate keys
+# function to get candidate keys
 get_candidates <- function(input_text) {
     input_text = clean_string(input_text)
     input_text = strsplit(input_text, " ")[[1]]
@@ -53,9 +36,11 @@ get_candidates <- function(input_text) {
     }
 }
 
+
+# function to add lambdas to a set of candidate keys for fuzzy matching against dict
 add_lambdas <- function(raw_candidates) {
         with_lambdas = raw_candidates
-        anon = "[a-z+]"
+        anon = "[a-z]+"
         for(cand in raw_candidates) {
                 len = length(strsplit(cand, " ")[[1]])
                 if(len > 1) {
@@ -69,15 +54,19 @@ add_lambdas <- function(raw_candidates) {
                         }
                 }
         }
-        
+
         return(with_lambdas)
 }
 
+
 # use get_candidates to predict (see commented stuff below related to imported dict DF from Python)
+# main thing to try to fix with this is add in lambdas and make the lookup work with regexes instead of exact match lookups
 predict_v2 <- function(input_text, dict) {
     cands = get_candidates(input_text)
+    # cands = add_lambdas(cands)
     best_answers = data.frame("prediction" = character(0), "score" = numeric(0), stringsAsFactors = FALSE)
     for(candidate in cands) {
+        # need to search by regex here rather than exact match
         matches = data.frame("val" = dict$trailing[dict$leading == candidate], "score" = dict$frequency[dict$leading == candidate] ^ dict$n[dict$leading == candidate], stringsAsFactors = FALSE)
         top_pred = matches$val[matches$score == max(matches$score)]
         top_pred_score = matches$score[matches$score == max(matches$score)]
@@ -95,6 +84,26 @@ predict_v2 <- function(input_text, dict) {
     }
 }
 
+
+# function to return all (fuzzy) matches against a set of keys derived from input text
+get_all_matches <- function(input_text, dict) {
+    matches = data.frame("prediction" = character(0), "score" = numeric(0), stringsAsFactors = FALSE)
+    cands = get_candidates(input_text)
+    # removing lambdas to test performance improvement
+    #cands = add_lambdas(cands)
+
+    for(candidate in cands) {
+        candidate = paste0("^", candidate, "$")
+        match_subset = subset(dict, grepl(candidate, dict$leading))
+        matches = rbind(matches, match_subset)
+    }
+
+    return(matches)
+}
+
+
+# function to plot predictions aside from the top one
+# THIS NEEDS MORE WORK -- try to utilize fuzzy matching, and collapse/combine scores for the same prediction if it occurs more than once
 plot_preds <- function(input_text, dict) {
         cands = get_candidates(input_text)
         best_answers = data.frame("prediction" = character(0), "score" = numeric(0), stringsAsFactors = FALSE)
@@ -107,7 +116,7 @@ plot_preds <- function(input_text, dict) {
         }
         # omit the NAs since those aren't real predictions, just a one-word match
         best_answers = best_answers[complete.cases(best_answers), ]
-        
+
         best_answers = best_answers[order(best_answers$score, decreasing = TRUE), ]
         return(barplot(as.matrix(log(best_answers$score)), beside=TRUE, horiz = TRUE, legend.text = best_answers$prediction))
 }
