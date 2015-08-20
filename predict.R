@@ -85,7 +85,17 @@ predict_v2 <- function(input_text, dict) {
 }
 
 
-# predict_v3 <- function() { } # try doing something very similar to get_top_matches (can even use it), seems to give better matches than predict_v2
+# super simple predict function, shifting most of the logic to the get_top_matches function
+predict_v3 <- function(input_text, dict) {
+    prediction = get_top_matches(input_text, dict)[1, ]
+    if(length(prediction) > 0) {
+        return(prediction$trailing)
+    }
+    else {
+        return("this is a test prediction for when no matches are found")
+    }
+}
+
 
 
 # function to return all (fuzzy) matches against a set of keys derived from input text
@@ -153,7 +163,7 @@ plot_preds <- function(input_text, dict) {
 
 # better function to plot predictions using get_top_matches
 plot_preds_v2 <- function(input_text, dict) {
-    top_matches = get_top_matches(input_text, dict)[1:3, ]
+    top_matches = get_top_matches(input_text, dict)[2:4, ]
     top_matches = top_matches[order(top_matches$frequency), ]
     best_answers = data.frame("prediction" = as.factor(top_matches$trailing), "score" = top_matches$frequency, stringsAsFactors = FALSE)
 

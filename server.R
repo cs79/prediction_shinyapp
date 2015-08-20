@@ -7,7 +7,7 @@ shinyServer(function(input, output) {
     # get predictions based on input -- need to ensure that predict.R will return "" if input is empty
 
     observeEvent(input$predictNow, {
-        output$pred0 <- renderText({ predict_v2(input$textToPredict, dict = dict)[1] })
+        output$pred0 <- renderText({ predict_v3(input$textToPredict, dict = dict)[1] })
         output$plot <- renderPlot({ plot_preds_v2(input$textToPredict, dict=dict) })
     })
 
