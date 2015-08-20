@@ -1,6 +1,6 @@
 source("predict.R")
 column_classes = c("integer", "character", "integer", "integer", "character", "character")
-dict = read.csv("alt_pruned_lookup.csv", colClasses = column_classes)
+dict = read.csv("lookup_outfile_no_numbers.csv", colClasses = column_classes)
 
 shinyServer(function(input, output) {
 
@@ -8,7 +8,7 @@ shinyServer(function(input, output) {
 
     observeEvent(input$predictNow, {
         output$pred0 <- renderText({ predict_v2(input$textToPredict, dict = dict)[1] })
-        output$plot <- renderPlot({ plot_preds(input$textToPredict, dict=dict) })
+        output$plot <- renderPlot({ plot_preds_v2(input$textToPredict, dict=dict) })
     })
 
     # alternative which tries to predict "live" but I think will die with a real prediction fn running

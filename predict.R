@@ -85,19 +85,48 @@ predict_v2 <- function(input_text, dict) {
 }
 
 
+# predict_v3 <- function() { } # try doing something very similar to get_top_matches (can even use it), seems to give better matches than predict_v2
+
+
 # function to return all (fuzzy) matches against a set of keys derived from input text
+# NEED TO ADD LOGIC TO ENFORCE UNIQUENESS OF PREDICTIONS WHEN STEPPING DOWN IN LENGTH
+get_top_matches <- function(input_text, dict) {
+    matches = data.frame()
+    cands = get_candidates(input_text)
+    # removing lambdas for now
+    #cands = add_lambdas(cands)
+    lengths = numeric(0)
+    for(cand in cands) {
+        lengths = c(lengths, length(strsplit(cand, " ")[[1]]))
+    }
+    cand_df = data.frame(cbind(lengths, cands))
+    best_len = 3
+
+
+    while(length(unique(matches$trailing)) < 4) {
+        cands_to_try = as.character(cand_df[cand_df$lengths == best_len,]$cands)
+        for(candidate in cands_to_try) {
+            candidate = paste0("^", candidate, "$")
+            match_subset = subset(dict, grepl(candidate, dict$leading))
+            matches = rbind(matches, match_subset)
+        }
+        best_len = best_len - 1
+    }
+    return(matches[order(-matches$n, -matches$frequency), ])
+}
+
+
+# original "get all matches" function:
 get_all_matches <- function(input_text, dict) {
     matches = data.frame("prediction" = character(0), "score" = numeric(0), stringsAsFactors = FALSE)
     cands = get_candidates(input_text)
     # removing lambdas to test performance improvement
     #cands = add_lambdas(cands)
-
     for(candidate in cands) {
         candidate = paste0("^", candidate, "$")
         match_subset = subset(dict, grepl(candidate, dict$leading))
         matches = rbind(matches, match_subset)
     }
-
     return(matches)
 }
 
@@ -120,6 +149,18 @@ plot_preds <- function(input_text, dict) {
         best_answers = best_answers[order(best_answers$score, decreasing = TRUE), ]
         return(barplot(as.matrix(log(best_answers$score)), beside=TRUE, horiz = TRUE, legend.text = best_answers$prediction))
 }
+
+
+# better function to plot predictions using get_top_matches
+plot_preds_v2 <- function(input_text, dict) {
+    top_matches = get_top_matches(input_text, dict)[1:3, ]
+    top_matches = top_matches[order(top_matches$frequency), ]
+    best_answers = data.frame("prediction" = as.factor(top_matches$trailing), "score" = top_matches$frequency, stringsAsFactors = FALSE)
+
+    return(barplot(as.matrix(best_answers$score), beside=TRUE, horiz = TRUE, legend.text = best_answers$prediction))
+}
+
+
 
 # TODO:
 # force top candidates to be unique words (for plot)
