@@ -66,13 +66,13 @@ predict_v3 <- function(input_text, dict) {
         return(prediction$trailing)
     }
     else {
-        # this doesn't correctly handle the case where input length = 1 and word is unknown; tries to fetch all leading 1-grams:
+        # with lambdas and new logic for returning top preds on empty match, this handles most cases
         prediction = get_top_matches(input_text, dict, use_lambdas = TRUE)[1, ]
         if(length(prediction) > 0) {
             return(prediction$trailing)
         }
         else {
-            return("nothing found -- replace this with most frequent 1-gram hardcoded")
+            return("something went horribly wrong")
         }
         # --------------
     }
@@ -109,11 +109,17 @@ get_top_matches <- function(input_text, dict, use_lambdas = FALSE) {
     }
     # add if / else statement here for both len(unique(pred)) == len(pred), and len(matches) == 0
     if(nrow(matches) == 0) {
-        return("No match")# replace this with something better that will work with predict, like the top match for 1-grams (just hard-code it here as a 1-row dataframe for consistency)
+        top_1grams = head(dict[order(-dict$frequency), ], 4)
+        top_1grams$trailing = top_1grams$leading
+        return(top_1grams)
+    } else if(nrow(matches) < 4) {
+        top_1grams = head(dict[order(-dict$frequency), ], 4)
+        top_1grams$trailing = top_1grams$leading
+        matches = rbind(matches, top_1grams)
+        return(matches[order(-matches$n, -matches$frequency), ])
     } else {
         return(matches[order(-matches$n, -matches$frequency), ])
     }
-
 }
 
 
