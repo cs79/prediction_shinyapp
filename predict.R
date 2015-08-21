@@ -80,8 +80,7 @@ predict_v3 <- function(input_text, dict) {
 
 
 
-# function to return all (fuzzy) matches against a set of keys derived from input text
-# NEED TO ADD LOGIC TO ENFORCE UNIQUENESS OF PREDICTIONS WHEN STEPPING DOWN IN LENGTH
+# function to return top unique (fuzzy) matches against a set of keys derived from input text
 get_top_matches <- function(input_text, dict, use_lambdas = FALSE) {
     matches = data.frame()
     cands = get_candidates(input_text)
@@ -97,7 +96,7 @@ get_top_matches <- function(input_text, dict, use_lambdas = FALSE) {
     cand_df = data.frame(cbind(lengths, cands))
     best_len = 3
 
-    # WHILE IS A PROBLEM FOR INPUT THAT WILL NEVER MATCH
+    # main logic loop
     while(length(unique(matches$trailing)) < 4 & best_len > 0) {
         cands_to_try = as.character(cand_df[cand_df$lengths == best_len,]$cands)
         for(candidate in cands_to_try) {
@@ -107,7 +106,19 @@ get_top_matches <- function(input_text, dict, use_lambdas = FALSE) {
         }
         best_len = best_len - 1
     }
-    # add if / else statement here for both len(unique(pred)) == len(pred), and len(matches) == 0
+    # condense non-uniques
+    if(nrow(matches) != 0 & nrow(matches) != length(unique(matches$trailing))) {
+        for(match in matches$trailing) {
+            if(sum(grepl(paste0("^", match, "$"), matches$trailing)) > 1) {
+                to_merge = matches[grepl(paste0("^", match, "$"), matches$trailing), ]
+                merged_sum = sum(to_merge$frequency)
+                matches[grepl(paste0("^", match, "$"), matches$trailing), ][1, ]$frequency = merged_sum
+                matches[grepl(paste0("^", match, "$"), matches$trailing), ][2:nrow(to_merge), ]$frequency = 0
+            }
+        }
+        matches = matches[matches$frequency != 0, ]
+    }
+    # ensure that we return at least 4 top matches; if no prediction, return 4 most common 1-grams
     if(nrow(matches) == 0) {
         top_1grams = head(dict[order(-dict$frequency), ], 4)
         top_1grams$trailing = top_1grams$leading
