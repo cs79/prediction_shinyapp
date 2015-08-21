@@ -59,32 +59,6 @@ add_lambdas <- function(raw_candidates) {
 }
 
 
-# use get_candidates to predict (see commented stuff below related to imported dict DF from Python)
-# main thing to try to fix with this is add in lambdas and make the lookup work with regexes instead of exact match lookups
-predict_v2 <- function(input_text, dict) {
-    cands = get_candidates(input_text)
-    # cands = add_lambdas(cands)
-    best_answers = data.frame("prediction" = character(0), "score" = numeric(0), stringsAsFactors = FALSE)
-    for(candidate in cands) {
-        # need to search by regex here rather than exact match
-        matches = data.frame("val" = dict$trailing[dict$leading == candidate], "score" = dict$frequency[dict$leading == candidate] ^ dict$n[dict$leading == candidate], stringsAsFactors = FALSE)
-        top_pred = matches$val[matches$score == max(matches$score)]
-        top_pred_score = matches$score[matches$score == max(matches$score)]
-        best_match = data.frame("prediction" = top_pred, "score" = top_pred_score, stringsAsFactors = FALSE)
-        best_answers = rbind(best_answers, best_match)
-    }
-    # omit the NAs since those aren't real predictions, just a one-word match
-    best_answers = best_answers[complete.cases(best_answers), ]
-    prediction = best_answers$prediction[best_answers$score == max(best_answers$score)]
-    if(length(prediction) > 0) {
-        return(best_answers$prediction[best_answers$score == max(best_answers$score)])
-    }
-    else {
-        return("this is a test prediction for when no matches are found")
-    }
-}
-
-
 # super simple predict function, shifting most of the logic to the get_top_matches function
 predict_v3 <- function(input_text, dict) {
     prediction = get_top_matches(input_text, dict)[1, ]
@@ -92,7 +66,15 @@ predict_v3 <- function(input_text, dict) {
         return(prediction$trailing)
     }
     else {
-        return("this is a test prediction for when no matches are found")
+        # this doesn't correctly handle the case where input length = 1 and word is unknown; tries to fetch all leading 1-grams:
+        prediction = get_top_matches(input_text, dict, use_lambdas = TRUE)[1, ]
+        if(length(prediction) > 0) {
+            return(prediction$trailing)
+        }
+        else {
+            return("nothing found -- replace this with most frequent 1-gram hardcoded")
+        }
+        # --------------
     }
 }
 
@@ -100,11 +82,14 @@ predict_v3 <- function(input_text, dict) {
 
 # function to return all (fuzzy) matches against a set of keys derived from input text
 # NEED TO ADD LOGIC TO ENFORCE UNIQUENESS OF PREDICTIONS WHEN STEPPING DOWN IN LENGTH
-get_top_matches <- function(input_text, dict) {
+get_top_matches <- function(input_text, dict, use_lambdas = FALSE) {
     matches = data.frame()
     cands = get_candidates(input_text)
-    # removing lambdas for now
-    #cands = add_lambdas(cands)
+    # add lambdas if requested
+    if(use_lambdas == TRUE) {
+        cands = add_lambdas(cands)
+    }
+    # create a dataframe of candidates and their lengths for back-off matching
     lengths = numeric(0)
     for(cand in cands) {
         lengths = c(lengths, length(strsplit(cand, " ")[[1]]))
@@ -112,8 +97,8 @@ get_top_matches <- function(input_text, dict) {
     cand_df = data.frame(cbind(lengths, cands))
     best_len = 3
 
-
-    while(length(unique(matches$trailing)) < 4) {
+    # WHILE IS A PROBLEM FOR INPUT THAT WILL NEVER MATCH
+    while(length(unique(matches$trailing)) < 4 & best_len > 0) {
         cands_to_try = as.character(cand_df[cand_df$lengths == best_len,]$cands)
         for(candidate in cands_to_try) {
             candidate = paste0("^", candidate, "$")
@@ -122,46 +107,18 @@ get_top_matches <- function(input_text, dict) {
         }
         best_len = best_len - 1
     }
-    return(matches[order(-matches$n, -matches$frequency), ])
-}
-
-
-# original "get all matches" function:
-get_all_matches <- function(input_text, dict) {
-    matches = data.frame("prediction" = character(0), "score" = numeric(0), stringsAsFactors = FALSE)
-    cands = get_candidates(input_text)
-    # removing lambdas to test performance improvement
-    #cands = add_lambdas(cands)
-    for(candidate in cands) {
-        candidate = paste0("^", candidate, "$")
-        match_subset = subset(dict, grepl(candidate, dict$leading))
-        matches = rbind(matches, match_subset)
+    # add if / else statement here for both len(unique(pred)) == len(pred), and len(matches) == 0
+    if(nrow(matches) == 0) {
+        return("No match")# replace this with something better that will work with predict, like the top match for 1-grams (just hard-code it here as a 1-row dataframe for consistency)
+    } else {
+        return(matches[order(-matches$n, -matches$frequency), ])
     }
-    return(matches)
-}
 
-
-# function to plot predictions aside from the top one
-# THIS NEEDS MORE WORK -- try to utilize fuzzy matching, and collapse/combine scores for the same prediction if it occurs more than once
-plot_preds <- function(input_text, dict) {
-        cands = get_candidates(input_text)
-        best_answers = data.frame("prediction" = character(0), "score" = numeric(0), stringsAsFactors = FALSE)
-        for(candidate in cands) {
-                matches = data.frame("val" = dict$trailing[dict$leading == candidate], "score" = dict$frequency[dict$leading == candidate] ^ dict$n[dict$leading == candidate], stringsAsFactors = FALSE)
-                top_pred = matches$val[matches$score == max(matches$score)]
-                top_pred_score = matches$score[matches$score == max(matches$score)]
-                best_match = data.frame("prediction" = top_pred, "score" = top_pred_score, stringsAsFactors = FALSE)
-                best_answers = rbind(best_answers, best_match)
-        }
-        # omit the NAs since those aren't real predictions, just a one-word match
-        best_answers = best_answers[complete.cases(best_answers), ]
-
-        best_answers = best_answers[order(best_answers$score, decreasing = TRUE), ]
-        return(barplot(as.matrix(log(best_answers$score)), beside=TRUE, horiz = TRUE, legend.text = best_answers$prediction))
 }
 
 
 # better function to plot predictions using get_top_matches
+# NEEDS TO HANDLE CASE WHERE RETURNED DF HAS FEWER THAN 4 ENTRIES, NEEDS TO USE LAMBDAS IF NEEDED
 plot_preds_v2 <- function(input_text, dict) {
     top_matches = get_top_matches(input_text, dict)[2:4, ]
     top_matches = top_matches[order(top_matches$frequency), ]
