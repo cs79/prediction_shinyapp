@@ -1,6 +1,6 @@
 source("predict.R")
 column_classes = c("integer", "character", "integer", "integer", "character", "character")
-dict = read.csv("lookup_outfile_no_numbers.csv", colClasses = column_classes)
+dict = read.csv("lookup_outfile_CLEAN.csv", colClasses = column_classes)
 
 shinyServer(function(input, output) {
 
