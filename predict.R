@@ -78,7 +78,6 @@ predict_v3 <- function(input_text, dict) {
 }
 
 
-
 # function to return top unique (fuzzy) matches against a set of keys derived from input text
 get_top_matches <- function(input_text, dict, use_lambdas = FALSE) {
     matches = data.frame()
@@ -144,12 +143,8 @@ plot_preds_v2 <- function(input_text, dict) {
     top_matches = get_top_matches(input_text, dict)[2:4, ]
     top_matches = top_matches[order(top_matches$frequency), ]
     best_answers = data.frame("prediction" = as.factor(top_matches$trailing), "score" = top_matches$frequency, stringsAsFactors = FALSE)
+    par(las=2)
+    par(mar=c(0,8,2,2))
 
-    return(barplot(as.matrix(best_answers$score), beside=TRUE, horiz = TRUE, legend.text = best_answers$prediction))
-}
-
-
-# Try to write a better plotting function that is more informative, but also fast enough:
-plot_preds_v3 <- function(input_text, dict) {
-    return(plot())
+    return(barplot(as.matrix(best_answers$score), beside=TRUE, horiz = TRUE, names.arg = best_answers$prediction, cex.names = 1.5, axes = F, main = "(relative scores by match length and frequency)", cex.axis = 1.2))
 }
