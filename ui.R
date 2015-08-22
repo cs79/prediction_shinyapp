@@ -1,6 +1,7 @@
 shinyUI(fluidPage(
 
     title = "hi.",
+    tags$style("body {background-color: EBEBEB}"),
 
     hr(),
     fluidRow(
@@ -26,7 +27,7 @@ shinyUI(fluidPage(
     fluidRow(
             column(2),
             column(4,
-           h1("more stuff you can try:", style = "font-weight: bold; padding: 10px 0px 5px 0px"),
+           h1("things you can try:", style = "font-weight: bold; padding: 10px 0px 5px 0px"),
            br(),
            tags$ul(
                    tags$li("Gain an intuitive understanding of ", tags$a(href="https://en.wikipedia.org/wiki/Markov_chain", "Markov Chains", target="_blank"), " by trying the suggested predictions", style="font-size: 1.2em"),
@@ -38,16 +39,17 @@ shinyUI(fluidPage(
         ),
         column(4,
                h1("runners up:", style = "font-weight: bold; padding: 10px 0px 5px 0px"),
-               plotOutput( "plot" ))
+               plotOutput( "plot" )), style = "margin-bottom:20px"
     ),
     fluidRow(
         column(2),
-        column(8, style = "border: 1px solid #6e6e6e")
+        column(8, style = "border: 1px solid #6e6e6e; margin-bottom:10px")
     ),
     fluidRow(
         column(2),
         column(8,
-           tags$span("created using python and R shiny by ", tags$a(href="https://github.com/cs79", "cs79", target="_blank"))
+           tags$span("created using python and R shiny by ", tags$a(href="https://github.com/cs79", "cs79", target="_blank"), style="text-size: 1.1em")
         )
     )
-))
+)
+)
