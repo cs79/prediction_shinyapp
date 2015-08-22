@@ -74,7 +74,6 @@ predict_v3 <- function(input_text, dict) {
         else {
             return("something went horribly wrong")
         }
-        # --------------
     }
 }
 
@@ -127,15 +126,20 @@ get_top_matches <- function(input_text, dict, use_lambdas = FALSE) {
         top_1grams = head(dict[order(-dict$frequency), ], 4)
         top_1grams$trailing = top_1grams$leading
         matches = rbind(matches, top_1grams)
+        if(any(matches$trailing == "i")) {
+            matches[matches$trailing == "i", ]$trailing = "I"
+        }
         return(matches[order(-matches$n, -matches$frequency), ])
     } else {
+        if(any(matches$trailing == "i")) {
+            matches[matches$trailing == "i", ]$trailing = "I"
+        }
         return(matches[order(-matches$n, -matches$frequency), ])
     }
 }
 
 
 # better function to plot predictions using get_top_matches
-# NEEDS TO HANDLE CASE WHERE RETURNED DF HAS FEWER THAN 4 ENTRIES, NEEDS TO USE LAMBDAS IF NEEDED
 plot_preds_v2 <- function(input_text, dict) {
     top_matches = get_top_matches(input_text, dict)[2:4, ]
     top_matches = top_matches[order(top_matches$frequency), ]
@@ -145,22 +149,7 @@ plot_preds_v2 <- function(input_text, dict) {
 }
 
 
-
-# TODO:
-# force top candidates to be unique words (for plot)
-# ^^^ this is currently a problem because it's getting predictions for only candidates generated from the same 3 word fragment -- need to figure out how to compile regexes to get alternative predictions with "anonymous" words inserted
-# fix scoring mechanism
-# fix original dataframe - remove "$NUMBER" sentinel; try using generators to build ngrams from a single string of text
-# make plot better
-# add some links / better filler text
-# add a little more styling to the page
-
-# code to get trailing word where leading word = candidate:
-# candidate = 'something'
-# dict["trailing"][dict["leading"] == candidate]
-# dict["frequency"][dict["leading"] == candidate]
-# test = data.frame("val" = dict$trailing[dict$leading == candidate], "score" = dict$frequency[dict$leading == candidate] * dict$n[dict$leading == candidate], stringsAsFactors = FALSE)
-# best = test$val[test$score == max(test$score)]
-# this works returning multiple values
-
-# BEST PREDICTED STRING: "hi there how are you going to be a good day for a while to get a chance to win the game"
+# Try to write a better plotting function that is more informative, but also fast enough:
+plot_preds_v3 <- function(input_text, dict) {
+    return(plot())
+}
