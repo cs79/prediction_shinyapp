@@ -8,7 +8,7 @@ shinyServer(function(input, output) {
     # pass input to predict function, render top prediction and plot the runners up
     observeEvent(input$predictNow, {
         output$pred0 <- renderText({ predict_v3(input$textToPredict, dict = dict)[1] })
-        output$plot <- renderPlot({ plot_preds_v2(input$textToPredict, dict=dict) })
+        output$plot <- renderPlot({ plot_preds_v2(input$textToPredict, dict=dict) }, height= 250)
     })
 
 })

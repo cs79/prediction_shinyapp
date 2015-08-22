@@ -3,7 +3,6 @@ shinyUI(fluidPage(
     title = "hi.",
     tags$style("body {background-color: EBEBEB}"),
 
-    hr(),
     fluidRow(
         column(2),
         column(8,
@@ -13,8 +12,8 @@ shinyUI(fluidPage(
     fluidRow(
         column(2),
         column(4,
-                textInput("textToPredict", label = h1("start typing:", style = "font-weight: bold; padding: 10px 0px 10px 0px"), value = ""),
-                actionButton("predictNow", "Press here if nothing happens :)", style="font-size: 1.2em"),
+                textInput("textToPredict", label = h1("type here:", style = "font-weight: bold; padding: 10px 0px 10px 0px"), value = ""),
+                actionButton("predictNow", "click once to get started :)", style="font-size: 1.2em"),
                 br()
                ),
         column(4,
@@ -22,7 +21,7 @@ shinyUI(fluidPage(
                h3(textOutput( "pred0" ))#,
                #uiOutput( "pred2" ),
                #uiOutput( "pred3" )
-        ), style = "padding-bottom: 25px"
+        ), style = "padding-bottom: 20px"
     ),
     fluidRow(
             column(2),
@@ -39,7 +38,7 @@ shinyUI(fluidPage(
         ),
         column(4,
                h1("runners up:", style = "font-weight: bold; padding: 10px 0px 5px 0px"),
-               plotOutput( "plot" )), style = "margin-bottom:20px"
+               plotOutput( "plot" ))
     ),
     fluidRow(
         column(2),
