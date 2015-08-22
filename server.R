@@ -1,24 +1,14 @@
+# server setup
 source("predict.R")
 column_classes = c("integer", "character", "integer", "integer", "character", "character")
 dict = read.csv("lookup_outfile_CLEAN.csv", colClasses = column_classes)
+dict = dict[complete.cases(dict), ]
 
 shinyServer(function(input, output) {
-
-    # get predictions based on input -- need to ensure that predict.R will return "" if input is empty
-
+    # pass input to predict function, render top prediction and plot the runners up
     observeEvent(input$predictNow, {
         output$pred0 <- renderText({ predict_v3(input$textToPredict, dict = dict)[1] })
         output$plot <- renderPlot({ plot_preds_v2(input$textToPredict, dict=dict) })
     })
-
-    # alternative which tries to predict "live" but I think will die with a real prediction fn running
-    #output$pred0 <- renderText({ predict(input$textToPredict)[1] })
-
-    # to generate buttons, but this is more of a pain in the ass than seems worthwhile in shiny:
-    #output$pred0 <- renderText({ predict(input$textToPredict)[1] })
-    #output$pred1 <- renderUI({ actionButton("appendPred1", label=predictions[1]) })
-    #output$pred2 <- renderUI({ actionButton("appendPred2", label=predictions[2]) })
-    #output$pred3 <- renderUI({ actionButton("appendPred3", label=predictions[3]) })
-
 
 })
