@@ -10,5 +10,4 @@ shinyServer(function(input, output) {
         output$pred0 <- renderText({ predict_v3(input$textToPredict, dict = dict)[1] })
         output$plot <- renderPlot({ plot_preds_v2(input$textToPredict, dict=dict) }, height= 250)
     })
-
 })
